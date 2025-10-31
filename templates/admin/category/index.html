@@ -1,0 +1,231 @@
+{% extends "admin/master.html" %}
+{% block content %}
+
+    <!-- Content Wrapper. Contains page content -->
+    <div class="content-wrapper">
+        <!-- Content Header (Page header) -->
+        <div class="content-header">
+            <div class="container-fluid">
+                <div class="row mb-2">
+                    <div class="col-sm-6">
+                        <h1 class="m-0">Category Page</h1>
+                    </div><!-- /.col -->
+                </div><!-- /.row -->
+            </div><!-- /.container-fluid -->
+        </div>
+
+        <!-- Modal -->
+        <div class="modal fade"
+             id="popup_modal"
+             data-bs-backdrop="static"
+             data-bs-keyboard="false" tabindex="-1"
+             aria-labelledby="staticBackdropLabel" aria-hidden="true">
+            <div class="modal-dialog">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h1 class="modal-title fs-5" id="staticBackdropLabel">Category</h1>
+                        {#                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>#}
+                    </div>
+                    <div class="modal-body">
+                        {# name #}
+                        <div class="form-group">
+                            <label for="name">Name</label>
+                            <input
+                                    type="text"
+                                    class="form-control"
+                                    id="name"
+                                    placeholder="Enter name"
+                                    v-model="form.name"
+                            >
+                        </div>
+                        {# image #}
+                        <div class="form-group">
+                            <label for="name">Image</label>
+                            <input
+                                    type="file"
+                                    class="form-control"
+                                    id="image"
+{#                                    v-model="form.image"#}
+                            >
+                        </div>
+                        {# description #}
+                        <div class="form-group">
+                            <label for="description">Description</label>
+                            <textarea
+                                    rows="3"
+                                    class="form-control"
+                                    id="description"
+                                    v-model="form.description"
+                            >
+                            </textarea>
+                        </div>
+                    </div>
+                    <div class="row">
+                        <div class="col-12 p-2">
+                            <button
+                                    style="float: left"
+                                    type="button"
+                                    class="btn btn-outline-danger ml-2"
+                                    @click="closePopUp()">Close
+                            </button>
+                            <button
+                                    style="float: right"
+                                    type="button"
+                                    class="btn btn-outline-primary mr-2"
+                                    @click="createCategory()"
+                            >Save
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <!-- Main content -->
+        <div class="content">
+            <div class="container-fluid">
+                <div class="row">
+                    <div class="col-12">
+                        <div class="card">
+                            <div class="card-header">
+                                <input
+                                        type="button"
+                                        class="btn btn-outline-secondary"
+                                        value="Add"
+                                        @click="openPopUp()"
+                                >
+                            </div>
+                            <div class="card-body">
+                                <div class="table-responsive">
+                                    <table class="table table-borderless table-striped">
+                                        <thead>
+                                        <tr class="bg-primary">
+                                            <th>No.</th>
+                                            <th>Name</th>
+                                            <th>Description</th>
+                                            <th>Action</th>
+                                        </tr>
+                                        </thead>
+                                        <tbody>
+                                        <tr
+                                                v-for="(item, index) in category_list"
+                                                :key="'category-' + index"
+                                        >
+                                            <td>[[ index + 1 ]]</td>
+                                            <td>[[ item.name ]]</td>
+                                            <td>[[ item.description ]]</td>
+                                            <td>
+                                                <input
+                                                        type="button"
+                                                        class="btn btn-outline-secondary mr-3"
+                                                        value="Edit"
+                                                        @click="getEdit(item)"
+                                                >
+                                                <input
+                                                        type="button"
+                                                        class="btn btn-outline-danger mr-3"
+                                                        value="Delete"
+                                                        @click="deleteItem(item.id)"
+                                                >
+                                            </td>
+                                        </tr>
+                                        </tbody>
+                                    </table>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <!-- /.row -->
+            </div><!-- /.container-fluid -->
+        </div>
+        <!-- /.content -->
+    </div>
+    <!-- /.content-wrapper -->
+{% endblock %}
+
+{% block scripts %}
+    <script>
+        const {createApp} = Vue
+
+        createApp({
+            delimiters: ['[[', ']]'],
+            data() {
+                return {
+                    category_list: [],
+                    form: {
+                        id: null,
+                        name: null,
+                        image: null,
+                        description: null
+                    }
+                }
+            },
+            created() {
+                this.fetchCategory()
+            },
+            methods: {
+                openPopUp() {
+                    $('#popup_modal').modal('show');
+                },
+                closePopUp() {
+                    $('#popup_modal').modal('hide');
+                },
+                getEdit(item) {
+                    console.log(item)
+                    this.form.id = item.id
+                    this.form.name = item.name
+                    this.form.description = item.description
+                    this.openPopUp()
+                },
+                deleteItem(id) {
+                    let currentIndex = this.category_list.findIndex(item => item.id === id)
+                    if (currentIndex !== -1) {
+                        Swal.fire({
+                            title: "Are you sure?",
+                            text: "You won't be able to revert this!",
+                            icon: "warning",
+                            showCancelButton: true,
+                            confirmButtonColor: "#3085d6",
+                            cancelButtonColor: "#d33",
+                            confirmButtonText: "Yes, delete it!"
+                        }).then((result) => {
+                            if (result.isConfirmed) {
+                                this.category_list.splice(currentIndex, 1)
+                                Swal.fire({
+                                    title: "Deleted!",
+                                    text: "Your file has been deleted.",
+                                    icon: "success"
+                                });
+                            }
+                        });
+
+                    }
+                },
+                fetchCategory() {
+                    let vm = this
+                    $.LoadingOverlay("show");
+                    axios.get('/admin/category/list')
+                        .then(function (response) {
+                            vm.category_list = response.data
+                            $.LoadingOverlay("hide");
+                        })
+                        .catch(function (error) {
+                            console.log(error);
+                        });
+                },
+                createCategory() {
+                    let vm = this
+                    $.LoadingOverlay("show");
+                    axios.post('/admin/category/create', this.form)
+                        .then(function (response) {
+                            console.log(response)
+                            $.LoadingOverlay("hide");
+                        })
+                        .catch(function (error) {
+                            console.log(error);
+                        });
+                }
+            }
+        }).mount('#app')
+    </script>
+{% endblock %}
